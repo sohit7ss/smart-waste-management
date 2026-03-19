@@ -1,0 +1,119 @@
+.page-container {
+  padding: 24px 32px;
+}
+
+.table-wrapper {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+  margin-top: 20px;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.data-table th, .data-table td {
+  padding: 16px 20px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-glass);
+}
+
+.data-table th {
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Status Badges */
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  display: inline-block;
+}
+
+.status-badge.empty { background: var(--accent-green-glow); color: var(--accent-green); }
+.status-badge.halffull { background: var(--accent-yellow-glow); color: var(--accent-yellow); }
+.status-badge.full, .status-badge.overflowing { background: var(--accent-red-glow); color: var(--accent-red); }
+
+.status-badge.pending { background: var(--accent-yellow-glow); color: var(--accent-yellow); }
+.status-badge.resolved, .status-badge.completed { background: var(--accent-green-glow); color: var(--accent-green); }
+.status-badge.in_progress { background: var(--accent-blue-glow); color: var(--accent-blue); }
+
+.priority-badge.normal { color: var(--accent-blue); }
+.priority-badge.high { color: var(--accent-red); font-weight: 700; }
+
+/* Progress Bar */
+.progress-bar {
+  width: 100px;
+  height: 6px;
+  background: var(--border-glass);
+  border-radius: 3px;
+  overflow: hidden;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 10px;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* Action Buttons */
+.btn-action {
+  padding: 6px 14px;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-action:hover {
+  background: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+}
+
+.btn-action.resolve:hover {
+  background: var(--accent-green);
+  border-color: var(--accent-green);
+}
+
+.desc-cell {
+  max-width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.text-green {
+  color: var(--accent-green);
+  font-weight: 600;
+}

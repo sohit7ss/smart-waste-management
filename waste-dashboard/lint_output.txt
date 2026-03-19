@@ -1,0 +1,59 @@
+
+> waste-dashboard@0.0.0 lint
+> eslint .
+
+
+C:\Users\Sohit_Narayan\OneDrive\Desktop\waste managemnt\waste-dashboard\src\components\MapView.jsx
+  1:60  error  'useMap' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+C:\Users\Sohit_Narayan\OneDrive\Desktop\waste managemnt\waste-dashboard\src\context\AuthContext.jsx
+  19:11  error    Error: Cannot access variable before it is declared
+
+`logout` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+  17 |         const decoded = jwtDecode(token);
+  18 |         if (decoded.exp * 1000 < Date.now()) {
+> 19 |           logout();
+     |           ^^^^^^ `logout` accessed before it is declared
+  20 |         } else {
+  21 |           setUser({ email: decoded.email, role: decoded.role, name: decoded.name });
+  22 |         }
+
+  43 |   };
+  44 |
+> 45 |   const logout = () => {
+     |   ^^^^^^^^^^^^^^^^^^^^^^
+> 46 |     localStorage.removeItem('token');
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 47 |     setUser(null);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 48 |     navigate('/login');
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 49 |   };
+     | ^^^^^ `logout` is declared here
+  50 |
+  51 |   if (loading) return <div className="loading-screen">Authenticating...</div>;
+  52 |  react-hooks/immutability
+  23:16  error    'err' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      no-unused-vars
+  28:6   warning  React Hook useEffect has a missing dependency: 'logout'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            react-hooks/exhaustive-deps
+  60:14  error    Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       react-refresh/only-export-components
+
+C:\Users\Sohit_Narayan\OneDrive\Desktop\waste managemnt\waste-dashboard\src\pages\Dashboard.jsx
+  39:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  37 |
+  38 |   useEffect(() => {
+> 39 |     fetchDashboardData();
+     |     ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  40 |     const interval = setInterval(fetchDashboardData, 30000);
+  41 |     return () => clearInterval(interval);
+  42 |   }, []);  react-hooks/set-state-in-effect
+
+✖ 6 problems (5 errors, 1 warning)
+

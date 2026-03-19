@@ -1,0 +1,17 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+python-dotenv
+slowapi
+Pillow
+bcrypt
+pydantic[email]
+ortools
+qrcode[pil]
+websockets
+aiofiles
+psutil
+numpy
