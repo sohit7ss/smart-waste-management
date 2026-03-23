@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const BASE_URL = 'http://localhost:8000'
+const BASE_URL = `http://${window.location.hostname}:8000`
 
 // Create axios instance with auth token auto-attach
 const api = axios.create({
@@ -17,13 +17,21 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// Auto handle 401 errors — redirect to login
+// Auto handle errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status
+    const url = error.config?.url || 'unknown'
+    if (status === 401) {
       localStorage.removeItem('token')
       window.location.href = '/login'
+    }
+    if (status === 422) {
+      console.error(`[API 422] Validation error on ${url}:`, error.response?.data)
+    }
+    if (status === 500) {
+      console.error(`[API 500] Server error on ${url}:`, error.response?.data)
     }
     return Promise.reject(error)
   }
@@ -73,6 +81,7 @@ export const complaintAPI = {
   getAnalytics: () => api.get('/complaints/analytics/summary'),
   reset: () => api.delete('/complaints/admin/reset-complaints'),
   firebaseSync: (data) => axios.post(`${BASE_URL}/complaints/firebase-sync`, data),
+  manualSync: () => api.post('/sync/firebase'),
 }
 
 // ============ ROUTES ============
@@ -113,6 +122,13 @@ export const fleetAPI = {
   updateLocation: (id, data) => axios.put(`${BASE_URL}/fleet/trucks/${id}/location`, data),
   assignRoute: (id, data) => api.put(`/fleet/trucks/${id}/assign`, data),
   getHistory: (id) => axios.get(`${BASE_URL}/fleet/trucks/${id}/history`),
+  getPerformance: () => axios.get(`${BASE_URL}/fleet/performance`),
+  dispatch: (data) => axios.post(`${BASE_URL}/fleet/dispatch`, data),
+}
+
+// ============ ROUTE NOTIFICATIONS ============
+export const routeNotifyAPI = {
+  notifyNearestTruck: (data) => axios.post(`${BASE_URL}/routes/notify-nearest-truck`, data),
 }
 
 // ============ IOT ============

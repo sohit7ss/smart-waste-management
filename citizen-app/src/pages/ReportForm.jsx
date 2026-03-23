@@ -5,7 +5,9 @@ export default function ReportForm() {
   const [formData, setFormData] = useState({
     location: '',
     description: '',
-    priority: 'normal'
+    priority: 'normal',
+    lat: null,
+    lng: null
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(null);
@@ -27,7 +29,12 @@ export default function ReportForm() {
   const handleLocate = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => {
-        setFormData({...formData, location: `${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`});
+        setFormData({
+          ...formData, 
+          location: `GPS: ${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`,
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        });
       });
     }
   };
@@ -40,7 +47,7 @@ export default function ReportForm() {
         <p>Your issue has been logged with the municipal authorities. Thank you for keeping our city clean!</p>
         <p>Your tracking number:</p>
         <div className="ticket-id">#{success}</div>
-        <button className="btn-secondary" onClick={() => { setSuccess(null); setFormData({location:'', description:'', priority:'normal'}); }}>
+        <button className="btn-secondary" onClick={() => { setSuccess(null); setFormData({location:'', description:'', priority:'normal', lat: null, lng: null}); }}>
           Report Another Issue
         </button>
       </div>

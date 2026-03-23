@@ -9,6 +9,8 @@ from middleware.security import validate_image_file
 from datetime import datetime
 import os
 import io
+import json
+from routes.websocket_routes import manager
 
 router = APIRouter(prefix="/dustbins", tags=["dustbins"])
 
@@ -112,6 +114,34 @@ async def analyze_dustbin_image(dustbin_id: int, file: UploadFile = File(...), d
         db_dustbin.fill_level = result["fill_level"]
         db_dustbin.last_updated = datetime.utcnow()
         db.commit()
+        
+        # ADD THIS - broadcast to dashboard
+        import asyncio
+        asyncio.create_task(manager.broadcast(json.dumps({
+            "type": "bin_update",
+            "bin": {
+                "id": db_dustbin.id,
+                "status": result["status"],
+                "fill_level": result["fill_level"],
+                "lat": db_dustbin.lat,
+                "lng": db_dustbin.lng,
+                "location": db_dustbin.location,
+                "last_updated": str(datetime.utcnow()),
+                "source": "phone_camera"  # so dashboard knows it came from camera
+            }
+        })))
+        
+        # If overflowing - also broadcast alert
+        if result["status"] == "overflowing":
+            asyncio.create_task(manager.broadcast(json.dumps({
+                "type": "new_alert",
+                "alert": {
+                    "bin_id": db_dustbin.id,
+                    "severity": "critical",
+                    "message": f"Camera detected overflow at {db_dustbin.location}",
+                    "source": "phone_camera"
+                }
+            })))
 
     return {
         "dustbin_id": dustbin_id,

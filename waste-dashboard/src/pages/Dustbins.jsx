@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 
-const BASE = 'http://localhost:8000'
+const BASE = `http://${window.location.hostname}:8000`
 
 export default function Dustbins() {
   const [dustbins, setDustbins] = useState([])
@@ -58,6 +58,16 @@ export default function Dustbins() {
       'overflowing': { bg: '#ef444422', color: '#ef4444', label: '🔴 Overflowing' },
     }
     return config[status] || { bg: '#94a3b822', color: '#94a3b8', label: status }
+  }
+
+  const getWasteTypeBadge = (type) => {
+    if (!type) return { bg: '#33415522', color: '#94a3b8', label: 'Mixed' };
+    const t = type.toLowerCase();
+    if (t.includes('organic')) return { bg: '#22c55e22', color: '#22c55e', label: '🌱 Organic' };
+    if (t.includes('recycl')) return { bg: '#3b82f622', color: '#3b82f6', label: '♻️ Recyclable' };
+    if (t.includes('hazard')) return { bg: '#ef444422', color: '#ef4444', label: '☢️ Hazardous' };
+    if (t.includes('dry')) return { bg: '#f59e0b22', color: '#f59e0b', label: '📦 Dry Waste' };
+    return { bg: '#33415522', color: '#94a3b8', label: type };
   }
 
   const filtered = dustbins.filter(bin => {
@@ -235,6 +245,7 @@ export default function Dustbins() {
             <tbody>
               {filtered.map((bin, i) => {
                 const badge = getStatusBadge(bin.status)
+                const typeBadge = getWasteTypeBadge(bin.waste_type)
                 return (
                   <tr key={bin.id} style={{
                     borderTop: '1px solid #334155',
@@ -293,14 +304,16 @@ export default function Dustbins() {
                     </td>
                     <td style={{ padding: '14px 16px' }}>
                       <span style={{
-                        background: '#33415522',
-                        color: '#94a3b8',
+                        background: typeBadge.bg,
+                        color: typeBadge.color,
                         padding: '3px 8px',
                         borderRadius: '6px',
                         fontSize: '12px',
-                        textTransform: 'capitalize'
+                        textTransform: 'capitalize',
+                        fontWeight: 'bold',
+                        whiteSpace: 'nowrap'
                       }}>
-                        {bin.waste_type || 'mixed'}
+                        {typeBadge.label}
                       </span>
                     </td>
                     <td style={{

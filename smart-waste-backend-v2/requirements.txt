@@ -15,3 +15,5 @@ websockets
 aiofiles
 psutil
 numpy
+firebase-admin
+google-cloud-firestore

@@ -11,6 +11,7 @@ import RoutesPage from './pages/Routes';
 import Alerts from './pages/Alerts';
 import DriverView from './pages/DriverView';
 import FleetTracker from './pages/FleetTracker';
+import Segregation from './pages/Segregation';
 import Layout from './components/Layout';
 
 // Protected Route Wrapper
@@ -48,6 +49,8 @@ export default function App() {
           <Route path="/driver" element={<ProtectedRoute><DriverView /></ProtectedRoute>} />
           
           <Route path="/fleet" element={<ProtectedRoute><FleetTracker /></ProtectedRoute>} />
+          
+          <Route path="/segregation" element={<ProtectedRoute><Segregation /></ProtectedRoute>} />
           
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

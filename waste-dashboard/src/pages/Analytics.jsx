@@ -9,13 +9,22 @@ import {
 const BASE = 'http://localhost:8000'
 
 const DEFAULT_TRENDS = [
-  { day: 'Mon', dry: 45, wet: 30, total: 75 },
-  { day: 'Tue', dry: 52, wet: 38, total: 90 },
-  { day: 'Wed', dry: 48, wet: 42, total: 90 },
-  { day: 'Thu', dry: 61, wet: 35, total: 96 },
-  { day: 'Fri', dry: 55, wet: 48, total: 103 },
-  { day: 'Sat', dry: 67, wet: 52, total: 119 },
-  { day: 'Sun', dry: 43, wet: 29, total: 72 },
+  { day: 'Mon', organic: 45, recyclable: 30, hazardous: 5, dry: 20 },
+  { day: 'Tue', organic: 52, recyclable: 38, hazardous: 3, dry: 22 },
+  { day: 'Wed', organic: 48, recyclable: 42, hazardous: 7, dry: 18 },
+  { day: 'Thu', organic: 61, recyclable: 35, hazardous: 4, dry: 25 },
+  { day: 'Fri', organic: 55, recyclable: 48, hazardous: 6, dry: 30 },
+  { day: 'Sat', organic: 67, recyclable: 52, hazardous: 8, dry: 35 },
+  { day: 'Sun', organic: 43, recyclable: 29, hazardous: 2, dry: 15 },
+]
+
+const MONTHLY_FALLBACK = [
+  { month: 'Oct', organic: 420, recyclable: 310, hazardous: 45, dry: 180 },
+  { month: 'Nov', organic: 390, recyclable: 340, hazardous: 38, dry: 200 },
+  { month: 'Dec', organic: 450, recyclable: 290, hazardous: 52, dry: 160 },
+  { month: 'Jan', organic: 480, recyclable: 370, hazardous: 41, dry: 210 },
+  { month: 'Feb', organic: 510, recyclable: 400, hazardous: 35, dry: 230 },
+  { month: 'Mar', organic: 530, recyclable: 420, hazardous: 29, dry: 245 },
 ]
 
 const DEFAULT_PEAKS = [
@@ -41,11 +50,12 @@ const DEFAULT_AREAS = [
 const COLORS = ['#22c55e', '#f59e0b', '#ef4444', '#3b82f6']
 
 export default function Analytics() {
-  const [trends, setTrends]   = useState(DEFAULT_TRENDS)
-  const [peaks, setPeaks]     = useState(DEFAULT_PEAKS)
-  const [areas, setAreas]     = useState(DEFAULT_AREAS)
-  const [carbon, setCarbon]   = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [trends, setTrends]     = useState(DEFAULT_TRENDS)
+  const [monthly, setMonthly]   = useState(MONTHLY_FALLBACK)
+  const [peaks, setPeaks]       = useState(DEFAULT_PEAKS)
+  const [areas, setAreas]       = useState(DEFAULT_AREAS)
+  const [carbon, setCarbon]     = useState(null)
+  const [loading, setLoading]   = useState(true)
 
   useEffect(() => {
     loadAll()
@@ -95,9 +105,9 @@ export default function Analytics() {
   }
 
   const wasteTypes = [
-    { name: 'Dry Waste',       value: 40, color: '#f59e0b' },
-    { name: 'Wet Waste',       value: 35, color: '#22c55e' },
-    { name: 'Recyclable',      value: 15, color: '#3b82f6' },
+    { name: 'Organic',         value: 40, color: '#22c55e' },
+    { name: 'Recyclable',      value: 35, color: '#3b82f6' },
+    { name: 'Dry Waste',       value: 15, color: '#f59e0b' },
     { name: 'Hazardous',       value: 10, color: '#ef4444' },
   ]
 
@@ -127,20 +137,18 @@ export default function Analytics() {
             emoji: '🌱'
           },
           {
-            label: 'Fuel Saved Daily',
-            value: carbon?.fuel_saved_liters_daily
-              ? `${carbon.fuel_saved_liters_daily}L`
-              : '15L',
+            label: 'Routes Optimized',
+            value: carbon?.routes_optimized || 12,
             color: '#3b82f6',
-            emoji: '⛽'
+            emoji: '🗺️'
           },
           {
-            label: 'Cost Saved Monthly',
-            value: carbon?.cost_saved_monthly_inr
-              ? `₹${carbon.cost_saved_monthly_inr}`
-              : '₹8,400',
+            label: 'CO₂ Reduced Daily',
+            value: carbon?.co2_saved_daily_kg
+              ? `${carbon.co2_saved_daily_kg}kg`
+              : '6.0kg',
             color: '#f59e0b',
-            emoji: '💰'
+            emoji: '🌿'
           },
           {
             label: 'Efficiency',
@@ -188,22 +196,30 @@ export default function Analytics() {
           padding: '20px'
         }}>
           <h3 style={{ margin: '0 0 16px', color: '#e2e8f0' }}>
-            📈 Waste Generation (7 Days)
+            📈 Waste Generation Stats
           </h3>
           <ResponsiveContainer width="100%" height={250}>
-            <AreaChart data={trends}>
+            <AreaChart data={trends === DEFAULT_TRENDS ? monthly : trends}>
               <defs>
+                <linearGradient id="organicGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
+                </linearGradient>
+                <linearGradient id="recyclableGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                </linearGradient>
+                <linearGradient id="hazardousGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                </linearGradient>
                 <linearGradient id="dryGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3}/>
                   <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
                 </linearGradient>
-                <linearGradient id="wetGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
-                </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155"/>
-              <XAxis dataKey="day" stroke="#64748b"/>
+              <XAxis dataKey={(v) => v.month || v.day || v.name} stroke="#64748b"/>
               <YAxis stroke="#64748b"/>
               <Tooltip
                 contentStyle={{
@@ -216,18 +232,34 @@ export default function Analytics() {
               <Legend/>
               <Area
                 type="monotone"
-                dataKey="dry"
-                name="Dry Waste (kg)"
-                stroke="#f59e0b"
-                fill="url(#dryGrad)"
+                dataKey="organic"
+                name="Organic (kg)"
+                stroke="#22c55e"
+                fill="url(#organicGrad)"
                 strokeWidth={2}
               />
               <Area
                 type="monotone"
-                dataKey="wet"
-                name="Wet Waste (kg)"
-                stroke="#22c55e"
-                fill="url(#wetGrad)"
+                dataKey="recyclable"
+                name="Recyclable (kg)"
+                stroke="#3b82f6"
+                fill="url(#recyclableGrad)"
+                strokeWidth={2}
+              />
+              <Area
+                type="monotone"
+                dataKey="hazardous"
+                name="Hazardous (kg)"
+                stroke="#ef4444"
+                fill="url(#hazardousGrad)"
+                strokeWidth={2}
+              />
+              <Area
+                type="monotone"
+                dataKey="dry"
+                name="Dry Waste (kg)"
+                stroke="#f59e0b"
+                fill="url(#dryGrad)"
                 strokeWidth={2}
               />
             </AreaChart>

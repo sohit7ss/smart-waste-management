@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FiHome, FiTrash2, FiMessageSquare, FiTrendingUp, FiMap, FiLogOut, FiAlertTriangle, FiTruck } from 'react-icons/fi';
 import api from '../services/api';
 import './Sidebar.css';
 
@@ -24,70 +23,47 @@ export default function Sidebar() {
     return () => clearInterval(interval);
   }, []);
 
+  const navItems = [
+    { path: '/',             icon: '🏠', label: 'Dashboard',  show: true },
+    { path: '/dustbins',     icon: '🗑️', label: 'Dustbins',   show: isAdmin },
+    { path: '/segregation',  icon: '♻️', label: 'Segregation', show: true },
+    { path: '/complaints',   icon: '📍', label: 'Complaints',  show: true },
+    { path: '/routes',       icon: '🗺️', label: 'Routes',      show: true },
+    { path: '/fleet',        icon: '🚛', label: 'Fleet Tracker', show: true },
+    { path: '/alerts',       icon: '🔔', label: 'Alerts',      show: true, badge: alertCount },
+    { path: '/driver',       icon: '👤', label: 'Driver View',  show: true },
+    { path: '/analytics',    icon: '📊', label: 'Analytics',    show: isAdmin },
+  ];
+
   return (
     <aside className="sidebar-container">
       <nav className="sidebar-nav">
-        <NavLink to="/" end className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
-          <FiHome className="nav-icon" />
-          <span>Dashboard</span>
-        </NavLink>
-        
-        {isAdmin && (
-          <NavLink to="/dustbins" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
-            <FiTrash2 className="nav-icon" />
-            <span>Dustbins</span>
+        {navItems.filter(n => n.show).map(item => (
+          <NavLink
+            key={item.path}
+            to={item.path}
+            end={item.path === '/'}
+            className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}
+          >
+            <span className="nav-icon" style={{ fontSize: '18px' }}>{item.icon}</span>
+            <span>{item.label}</span>
+            {item.badge > 0 && (
+              <span style={{
+                background: '#ef4444',
+                color: 'white',
+                borderRadius: '999px',
+                padding: '2px 8px',
+                fontSize: '11px',
+                fontWeight: 'bold',
+                marginLeft: 'auto',
+                minWidth: '20px',
+                textAlign: 'center'
+              }}>
+                {item.badge}
+              </span>
+            )}
           </NavLink>
-        )}
-        
-        <NavLink to="/complaints" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
-          <FiMessageSquare className="nav-icon" />
-          <span>Complaints</span>
-        </NavLink>
-        
-        <NavLink to="/routes" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
-          <FiMap className="nav-icon" />
-          <span>Route Optimization</span>
-        </NavLink>
-
-        {/* Alerts Nav with Badge */}
-        <NavLink to="/alerts" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
-          <FiAlertTriangle className="nav-icon" />
-          <span>Alerts</span>
-          {alertCount > 0 && (
-            <span style={{
-              background: '#ef4444',
-              color: 'white',
-              borderRadius: '999px',
-              padding: '2px 8px',
-              fontSize: '11px',
-              fontWeight: 'bold',
-              marginLeft: 'auto',
-              minWidth: '20px',
-              textAlign: 'center'
-            }}>
-              {alertCount}
-            </span>
-          )}
-        </NavLink>
-
-        {/* Driver View */}
-        <NavLink to="/driver" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
-          <FiTruck className="nav-icon" />
-          <span>Driver View</span>
-        </NavLink>
-
-        {/* Fleet Tracker */}
-        <NavLink to="/fleet" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
-          <FiTruck className="nav-icon" style={{color: '#3b82f6'}}/>
-          <span>Fleet Tracker</span>
-        </NavLink>
-
-        {isAdmin && (
-          <NavLink to="/analytics" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
-            <FiTrendingUp className="nav-icon" />
-            <span>Analytics</span>
-          </NavLink>
-        )}
+        ))}
       </nav>
 
       <div className="sidebar-footer">
@@ -99,7 +75,7 @@ export default function Sidebar() {
           </div>
         </div>
         <button className="btn-logout" onClick={logout}>
-          <FiLogOut />
+          <span>🚪</span>
           <span>Logout</span>
         </button>
       </div>

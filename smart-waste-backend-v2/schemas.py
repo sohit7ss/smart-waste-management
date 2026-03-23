@@ -31,7 +31,7 @@ class DustbinBase(BaseModel):
     lat: float
     lng: float
     status: str = "empty"
-    fill_level: int = 0
+    fill_level: float = 0.0
     battery: float = 100.0
     qr_code: Optional[str] = None
 
@@ -40,7 +40,7 @@ class DustbinCreate(DustbinBase):
 
 class DustbinUpdate(BaseModel):
     status: Optional[str] = None
-    fill_level: Optional[int] = None
+    fill_level: Optional[float] = None
     battery: Optional[float] = None
     last_updated: Optional[datetime] = None
 
@@ -55,6 +55,8 @@ class ComplaintBase(BaseModel):
     location: str
     description: str
     priority: str = "normal"
+    lat: Optional[float] = None
+    lng: Optional[float] = None
 
 class ComplaintCreate(ComplaintBase):
     image_url: Optional[str] = None

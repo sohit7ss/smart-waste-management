@@ -151,8 +151,16 @@ def area_comparison(db: Session = Depends(get_db)):
     result = []
     for name, data in areas.items():
         avg_fill = data["total_fill"] / data["count"] if data["count"] > 0 else 0
-        # Count complaints for this area
-        complaint_count = db.query(models.Complaint).filter(models.Complaint.location.contains(name.split(" - ")[0] if " - " in name else name)).count()
+        # Count complaints from Firestore for this area
+        try:
+            import firebase_admin
+            if firebase_admin._apps:
+                from services.firebase_reader import get_complaint_count_for_area
+                complaint_count = get_complaint_count_for_area(name.split(" - ")[0] if " - " in name else name)
+            else:
+                complaint_count = 0
+        except Exception:
+            complaint_count = 0
         result.append({
             "name": name,
             "complaints": complaint_count,

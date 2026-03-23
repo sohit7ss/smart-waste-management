@@ -5,7 +5,7 @@ import math
 from datetime import datetime
 
 SERVER_URL = "http://localhost:8000"
-API_KEY    = "smartbin-iot-key-2026"
+API_KEY    = "smartbin-iot-key-2026-secure-x9k2m"
 
 headers = {
     "X-API-Key":    API_KEY,

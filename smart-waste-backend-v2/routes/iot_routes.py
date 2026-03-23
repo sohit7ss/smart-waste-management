@@ -42,19 +42,63 @@ async def iot_update(
         bin_record.battery = battery
         bin_record.last_updated = datetime.utcnow()
 
-        # Auto-generate alerts for overflow/warning/low battery (Upgrade 4)
-        try:
-            from routes.alert_routes import check_and_create_alerts
-            check_and_create_alerts({
-                "id": bin_record.id,
-                "location": bin_record.location,
-                "fill_level": fill_level,
-                "battery": battery
-            }, db)
-        except Exception as e:
-            print(f"Alert check error: {e}")
+        # Auto generate alert if overflow or full
+        if status in ["overflowing", "full"]:
+            existing = db.query(models.Alert).filter(
+                models.Alert.dustbin_id == bin_record.id,
+                models.Alert.resolved == False,
+                models.Alert.type == "overflow"
+            ).first()
+            
+            if not existing:
+                severity = "critical" if status == "overflowing" else "high"
+                alert = models.Alert(
+                    dustbin_id=bin_record.id,
+                    type="overflow",
+                    message=f"Bin at {bin_record.location} is {status} - immediate collection needed",
+                    resolved=False,
+                    timestamp=datetime.utcnow()
+                )
+                db.add(alert)
+                db.commit()
+                
+                # Broadcast alert via WebSocket
+                try:
+                    from routes.websocket_routes import manager
+                    import json
+                    import asyncio
+                    
+                    alert_dict = {
+                        "bin_id": bin_record.id,
+                        "severity": severity,
+                        "message": alert.message,
+                        "location": bin_record.location,
+                        "status": status
+                    }
+                    
+                    try:
+                        loop = asyncio.get_running_loop()
+                        loop.create_task(manager.broadcast(json.dumps({
+                            "type": "new_alert",
+                            "alert": alert_dict
+                        })))
+                    except RuntimeError:
+                        asyncio.run(manager.broadcast(json.dumps({
+                            "type": "new_alert",
+                            "alert": alert_dict
+                        })))
+                except Exception as e:
+                    print(f"WebSocket broadcast error: {e}")
 
-        db.commit()
+        # Auto resolve alert if bin is now empty or half-full
+        if status in ["empty", "half-full"]:
+            db.query(models.Alert).filter(
+                models.Alert.dustbin_id == bin_record.id,
+                models.Alert.resolved == False,
+                models.Alert.type == "overflow"
+            ).update({"resolved": True})
+            db.commit()
+
         db.refresh(bin_record)
 
         bin_data = {
@@ -74,6 +118,19 @@ async def iot_update(
             asyncio.create_task(notify_bin_update(bin_data))
         except Exception as e:
             print(f"WebSocket notify error: {e}")
+
+        # Auto-dispatch nearest truck when bin is overflowing
+        if status == "overflowing" and bin_record.lat and bin_record.lng:
+            try:
+                from routes.route_routes import notify_nearest_truck
+                await notify_nearest_truck({
+                    "bin_id": dustbin_id,
+                    "lat": bin_record.lat,
+                    "lng": bin_record.lng,
+                    "reason": "overflow_detected"
+                })
+            except Exception as e:
+                print(f"Auto-dispatch error: {e}")
 
         return {
             "success": True,

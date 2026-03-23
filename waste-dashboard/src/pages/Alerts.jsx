@@ -10,7 +10,15 @@ export default function Alerts() {
   const fetchAlerts = async () => {
     try {
       const res = await api.get('/alerts/');
-      setAlerts(res.data.alerts || []);
+      // Deduplicate by alert.id
+      const raw = res.data.alerts || [];
+      const seen = new Set();
+      const unique = raw.filter(a => {
+        if (seen.has(a.id)) return false;
+        seen.add(a.id);
+        return true;
+      });
+      setAlerts(unique);
       setStats({
         total: res.data.total || 0,
         critical: res.data.critical || 0,
@@ -30,12 +38,50 @@ export default function Alerts() {
     return () => clearInterval(interval);
   }, []);
 
+  // WebSocket for real-time alerts
+  useEffect(() => {
+    let ws;
+    const connectWS = () => {
+      try {
+        ws = new WebSocket('ws://localhost:8000/ws/dashboard');
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.type === 'new_alert' && data.alert) {
+              setAlerts(prev => {
+                const unique = new Map();
+                [data.alert, ...prev].forEach(a => {
+                  if (!unique.has(a.id)) unique.set(a.id, a);
+                });
+                return Array.from(unique.values());
+              });
+              // Fetch to keep stats in perfect sync
+              fetchAlerts();
+            }
+          } catch {}
+        };
+        ws.onclose = () => setTimeout(connectWS, 3000);
+      } catch {}
+    };
+    connectWS();
+    return () => { try { ws?.close() } catch {} };
+  }, []);
+
   const resolveAlert = async (id) => {
     try {
       await api.put(`/alerts/${id}/resolve`);
       fetchAlerts();
-    } catch (err) {
+    } catch {
       alert('Failed to resolve alert.');
+    }
+  };
+
+  const resolveAll = async () => {
+    try {
+      await Promise.all(alerts.map(a => api.put(`/alerts/${a.id}/resolve`)));
+      fetchAlerts();
+    } catch {
+      alert('Failed to resolve some alerts.');
     }
   };
 
@@ -45,12 +91,26 @@ export default function Alerts() {
     medium: { background: '#3b82f6', color: 'white' }
   };
 
-  if (loading) return <div>Loading Alerts...</div>;
+  if (loading) return (
+    <div className="loading-spinner"><div className="spinner"></div><p>Loading Alerts...</p></div>
+  );
 
   return (
     <div className="page-container">
-      <div className="section-header">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
         <h2 className="section-title">🚨 Alert Management Center</h2>
+        {alerts.length > 0 && (
+          <button
+            onClick={resolveAll}
+            style={{
+              background: '#22c55e', color: 'white', border: 'none',
+              borderRadius: '8px', padding: '10px 20px', cursor: 'pointer',
+              fontWeight: 'bold', fontSize: '13px'
+            }}
+          >
+            ✅ Mark All Resolved
+          </button>
+        )}
       </div>
 
       {/* Stats Cards */}
@@ -101,7 +161,7 @@ export default function Alerts() {
                       fontWeight: 'bold',
                       textTransform: 'uppercase'
                     }}>
-                      {alert.severity}
+                      {alert.severity || alert.type}
                     </span>
                   </td>
                   <td>{alert.type}</td>
